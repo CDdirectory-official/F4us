@@ -23,43 +23,36 @@ int zv_analyze_binary(ZV_CONTEXT *ctx, const unsigned char *file_buffer, size_t 
         return ZV_ERROR; 
     }
 
-    // -------------------------------------------------------------------------
-    // 1. ADVANCED MAGIC BYTES VALIDATION (Anti-Bypass)
-    // -------------------------------------------------------------------------
+
     if (buffer_size >= 2) {
-        // Cek Magic Byte standar Windows Executable (MZ)
         if (file_buffer[0] == 0x4D && file_buffer[1] == 0x5A) {
             ctx->threat_score += 10; 
             
-            // Validasi tambahan: Cek offset e_lfanew untuk memastikan struktur PE valid
             if (buffer_size >= 64) {
-                unsigned int pe_offset = *(unsigned int*)(file_buffer + 0x3C);
-                // Pastikan offset PE berada di dalam jangkauan buffer yang valid
+              unsigned int pe_offset = file_buffer[0x3C] | 
+                         (file_buffer[0x3D] << 8) | 
+                         (file_buffer[0x3E] << 16) | 
+                         (file_buffer[0x3F] << 24);
                 if (pe_offset + 4 <= buffer_size) {
                     if (file_buffer[pe_offset] == 'P' && file_buffer[pe_offset + 1] == 'E') {
-                        ctx->threat_score += 15; // Struktur PE terkonfirmasi valid
+                        ctx->threat_score += 15; 
                     }
                 }
             }
         } 
-        // Deteksi upaya bypass langsung menggunakan Web Shell header
+
         else if (file_buffer[0] == '<' && file_buffer[1] == '?') {
             return ZV_CRITICAL; 
         }
     }
 
-    // -------------------------------------------------------------------------
-    // 2. HONEYPOT / DECEPTION TRAP (Umpan untuk Attacker/Reverser)
-    // -------------------------------------------------------------------------
-    // Menggunakan 'volatile' agar tidak dihapus oleh optimasi kompiler (-O2 / -Ox)
+
     volatile int attacker_bait_bytes = 0; 
     unsigned char honeypot_canary[8] = { 0xDE, 0xAD, 0xBE, 0xEF, 0xDE, 0xAD, 0xBE, 0xEF };
 
-    // -------------------------------------------------------------------------
-    // 3. ANTI-DoS & ANTI-OVERFLOW ENTROPY LOOP
-    // -------------------------------------------------------------------------
+
     unsigned int byte_counts[256] = {0};
-    size_t total_bytes = 0; // Menggunakan size_t (64-bit) untuk mencegah integer overflow riil
+    size_t total_bytes = 0; 
     unsigned int loop_counter = 0;
 
     for (size_t i = 0; i < buffer_size; i++) {
