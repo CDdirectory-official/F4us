@@ -1,4 +1,4 @@
-# F4us Security Ecosystem (v2.0)
+ F4us Security Ecosystem (v2.0)
 > **"F for Us"** — A high-performance, event-driven, zero-JS Active EDR and Sandbox Ecosystem built for the community.
 
 Licensed under the **GNU General Public License v3 (GPL-3.0)**. 
@@ -16,6 +16,9 @@ By utilizing native Linux kernel APIs (`inotify` and isolated namespaces), F4us 
 ## Architecture & Modules
 
 The ecosystem is engineered using a decoupled, asynchronous modular framework.
+
+WARNING:
+Never test kernel-mode binaries (.sys) on your primary development hostmachine. Code bugs in Ring 0 will trigger immediate Blue Screen of Death (BSOD) or kernel panics. PLEASE USE A VIRTUAL MACHINE IM CRINEEE
 
 
 
